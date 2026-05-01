@@ -226,9 +226,3 @@ real estate continued to face headwinds from elevated borrowing costs..."
 ## 📄 License
 
 MIT License — see [LICENSE](LICENSE) for details.
-
----
-
-## 🙋 Contributing
-
-Pull requests are welcome! Please open an issue first to discuss what you'd like to change.
