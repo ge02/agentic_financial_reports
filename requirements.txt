@@ -1,0 +1,28 @@
+# DAX AI Financial Reporter — Requirements
+# Python 3.10+
+
+# --- Data Fetching ---
+yfinance==0.2.54                # Yahoo Finance market data (no API key needed)
+pytickersymbols==1.17.10         # DAX 40 ticker symbol list
+
+# --- Data Processing ---
+pandas==2.2.3                   # DataFrames for OHLCV data handling
+numpy==2.2.5                    # Numerical computations
+
+# --- AI Report Generation ---
+anthropic==0.51.0               # Claude API SDK
+
+# --- Report Rendering ---
+jinja2==3.1.6                   # HTML report templating
+markdown==3.8                   # Markdown to HTML conversion
+
+# --- Scheduling & Notifications ---
+APScheduler==3.11.0             # Run reporter on a cron-like schedule
+twilio>=9.0.0                   # WhatsApp delivery via Twilio API
+
+# --- Environment & Config ---
+python-dotenv==1.1.0            # Load .env variables
+
+# --- Testing ---
+pytest==8.3.5                   # Test runner
+pytest-mock==3.14.0             # Mocking for unit tests
