@@ -92,6 +92,43 @@ class TestAnalyze:
         result = analyze(stocks_no_industry, close_df, volume_df)
         assert "Other" in result["sector_performance"]
 
+    def test_industry_movers_has_positive_and_negative_keys(self, stocks, close_df, volume_df):
+        result = analyze(stocks, close_df, volume_df)
+        assert "positive" in result["industry_movers"]
+        assert "negative" in result["industry_movers"]
+
+    def test_industry_movers_positive_sorted_descending(self, stocks, close_df, volume_df):
+        result = analyze(stocks, close_df, volume_df)
+        avgs = [i["avg_return"] for i in result["industry_movers"]["positive"]]
+        assert avgs == sorted(avgs, reverse=True)
+
+    def test_industry_movers_negative_sorted_ascending(self, stocks, close_df, volume_df):
+        result = analyze(stocks, close_df, volume_df)
+        avgs = [i["avg_return"] for i in result["industry_movers"]["negative"]]
+        assert avgs == sorted(avgs)
+
+    def test_industry_movers_top_positive_is_technology(self, stocks, close_df, volume_df):
+        # Technology avg = +6.5% — highest in fixture
+        result = analyze(stocks, close_df, volume_df)
+        assert result["industry_movers"]["positive"][0]["sector"] == "Technology"
+
+    def test_industry_movers_top_negative_is_financials(self, stocks, close_df, volume_df):
+        # Financials avg = -6.5% — lowest in fixture
+        result = analyze(stocks, close_df, volume_df)
+        assert result["industry_movers"]["negative"][0]["sector"] == "Financials"
+
+    def test_industry_movers_contains_per_sector_gainers(self, stocks, close_df, volume_df):
+        result = analyze(stocks, close_df, volume_df)
+        tech = result["industry_movers"]["positive"][0]
+        assert len(tech["top_gainers"]) > 0
+        # AAA.DE (+10%) should be the top gainer in Technology
+        assert tech["top_gainers"][0]["ticker"] == "AAA.DE"
+
+    def test_industry_movers_at_most_three_industries_each(self, stocks, close_df, volume_df):
+        result = analyze(stocks, close_df, volume_df)
+        assert len(result["industry_movers"]["positive"]) <= 3
+        assert len(result["industry_movers"]["negative"]) <= 3
+
     def test_fewer_than_five_stocks_returns_shorter_lists(self):
         dates = pd.to_datetime(["2026-04-20", "2026-04-21", "2026-04-22",
                                 "2026-04-23", "2026-04-24"])
@@ -190,6 +227,14 @@ class TestRenderReport:
             "top_losers":  [{"name": "Zeta AG",  "ticker": "ZZZ.DE", "value": -10.0}],
             "vol_spikes":  [{"name": "Alpha AG", "ticker": "AAA.DE", "value": 57.5}],
             "sector_performance": {"Technology": 1.5},
+            "industry_movers": {
+                "positive": [{"sector": "Technology", "avg_return": 1.5,
+                              "top_gainers": [{"name": "Alpha AG", "ticker": "AAA.DE", "value": 10.0}],
+                              "top_losers": []}],
+                "negative": [{"sector": "Financials", "avg_return": -6.5,
+                              "top_gainers": [],
+                              "top_losers": [{"name": "Zeta AG", "ticker": "ZZZ.DE", "value": -10.0}]}],
+            },
         }
 
     def test_contains_report_title(self):
@@ -213,5 +258,12 @@ class TestRenderReport:
     def test_contains_all_sections(self):
         report = render_report(self._sample_analysis(), "commentary")
         for section in ["Top Gainers", "Top Losers", "Volume Spikes",
-                        "Sector Performance", "AI Commentary"]:
+                        "Sector Performance", "AI Commentary",
+                        "Industry Deep Dive", "Best Performing Industries",
+                        "Worst Performing Industries"]:
             assert section in report
+
+    def test_industry_deep_dive_contains_sector_names(self):
+        report = render_report(self._sample_analysis(), "commentary")
+        assert "Technology" in report
+        assert "Financials" in report
